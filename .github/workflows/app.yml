@@ -5,7 +5,7 @@ name: Dev-Clock_App-Deploy_to_EC2      #update as appropriate
 on:
   push:
     branches: ["main"]
-
+  
 permissions:
   id-token: write   # REQUIRED for OIDC to work
   contents: read    # required for checkout
@@ -30,7 +30,7 @@ env:
   KEY: ${{ secrets.SSH_KEY }}
 
   #sonarqube scan values
-  SONAR_TOKEN: ${{ secrets.  }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
   
 
@@ -141,7 +141,7 @@ jobs:
               sleep 5
               echo "wait.......one moment......"
               sleep 2
-              curl -f http://localhost:${{ env.ACCESS_PORT }} || exit 1     #healthcheck. if it curl command fails to access the application, the pipeline fails
+              curl -f http://localhost:${{ env.ACCESS_PORT }} | head -7 || exit 1     #healthcheck. if it curl command fails to access the application, the pipeline fails
 
       # ---------------------------
       # Display application url 
