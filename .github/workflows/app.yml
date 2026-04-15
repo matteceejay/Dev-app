@@ -22,7 +22,7 @@ env:
   
   #application values
   OWNER: ${{ vars.OWNER }}        # OWNER value in lower case - adds customization to application - update to your name
-  ACCESS_PORT: 8085               # make sure this port is open on your EC2
+  ACCESS_PORT: 8088               # make sure this port is open on your EC2
 
   #ec2 access values
   EC2_HOST: ${{ vars.EC2_HOST }}
