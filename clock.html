@@ -1,686 +1,504 @@
-Analog clock	<!DOCTYPE html>
-	<html lang="en">
-	<head>
-	  <meta charset="UTF-8"/>
-	  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
-	  <title>Analog Atelier | Timeless World Clock</title>
-	  <style>
-	    * {
-	      margin: 0;
-	      padding: 0;
-	      box-sizing: border-box;
-	      user-select: none; /* avoid accidental selection on dials */
-	    }
-	
-	    :root {
-	      --bg: radial-gradient(circle at 20% 30%, #0b0d15, #03050a);
-	      --surface: rgba(22, 26, 40, 0.72);
-	      --glass: rgba(25, 30, 45, 0.65);
-	      --glass-light: rgba(255, 255, 255, 0.08);
-	      --border: rgba(255, 255, 255, 0.12);
-	      --text: #f0f3fc;
-	      --muted: #8b98b9;
-	      --accent: #ff7b4a;
-	      --accent-glow: #ff7b4aaa;
-	      --dial-bg: #11141f;
-	      --dial-ring: #2e3440;
-	      --hand-hour: #ffffff;
-	      --hand-minute: #cbd5ff;
-	      --hand-second: #ff7b4a;
-	      --shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.5);
-	    }
-	
-	    [data-theme="light"] {
-	      --bg: linear-gradient(145deg, #eef2fa, #dce3ef);
-	      --surface: rgba(255, 255, 255, 0.75);
-	      --glass: rgba(245, 248, 255, 0.85);
-	      --glass-light: rgba(0, 0, 0, 0.03);
-	      --border: rgba(100, 110, 130, 0.25);
-	      --text: #1a253c;
-	      --muted: #4f5b73;
-	      --accent: #d4582c;
-	      --accent-glow: #d4582caa;
-	      --dial-bg: #fbfdff;
-	      --dial-ring: #cbd5e1;
-	      --hand-hour: #1e293b;
-	      --hand-minute: #334155;
-	      --hand-second: #d4582c;
-	      --shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
-	    }
-	
-	    body {
-	      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'Poppins', sans-serif;
-	      background: var(--bg);
-	      color: var(--text);
-	      min-height: 100vh;
-	      backdrop-filter: blur(0px);
-	      transition: background 0.3s ease, color 0.2s;
-	      padding: 1rem;
-	    }
-	
-	    /* smooth container */
-	    .clock-container {
-	      max-width: 1400px;
-	      margin: 0 auto;
-	    }
-	
-	    /* header with neon touch */
-	    header {
-	      display: flex;
-	      justify-content: space-between;
-	      align-items: baseline;
-	      flex-wrap: wrap;
-	      gap: 1rem;
-	      padding: 0.75rem 0 1.5rem;
-	      border-bottom: 1px solid var(--border);
-	      margin-bottom: 2rem;
-	    }
-	    .title-section h1 {
-	      font-size: clamp(1.8rem, 5vw, 2.7rem);
-	      font-weight: 700;
-	      background: linear-gradient(135deg, #ffb88c, var(--accent));
-	      background-clip: text;
-	      -webkit-background-clip: text;
-	      color: transparent;
-	      letter-spacing: -0.01em;
-	    }
-	    .title-section p {
-	      font-size: 0.8rem;
-	      color: var(--muted);
-	      margin-top: 0.2rem;
-	    }
-	    .controls {
-	      display: flex;
-	      gap: 1.4rem;
-	      align-items: center;
-	      flex-wrap: wrap;
-	    }
-	    .toggle-group {
-	      display: flex;
-	      align-items: center;
-	      gap: 8px;
-	      background: var(--glass);
-	      backdrop-filter: blur(12px);
-	      padding: 5px 14px;
-	      border-radius: 60px;
-	      border: 1px solid var(--border);
-	    }
-	    .toggle-switch {
-	      width: 44px;
-	      height: 24px;
-	      background: var(--dial-ring);
-	      border-radius: 40px;
-	      position: relative;
-	      cursor: pointer;
-	      transition: 0.2s;
-	    }
-	    .toggle-switch .knob {
-	      position: absolute;
-	      width: 18px;
-	      height: 18px;
-	      background: white;
-	      border-radius: 50%;
-	      top: 3px;
-	      left: 3px;
-	      transition: 0.2s;
-	    }
-	    .toggle-switch.active {
-	      background: var(--accent);
-	    }
-	    .toggle-switch.active .knob {
-	      transform: translateX(20px);
-	    }
-	    .toggle-label {
-	      font-size: 0.75rem;
-	      font-weight: 500;
-	      color: var(--muted);
-	    }
-	    .toggle-label.active {
-	      color: var(--accent);
-	      font-weight: 600;
-	    }
-	
-	    /* Hero Analog Card */
-	    .hero-analog {
-	      background: var(--surface);
-	      backdrop-filter: blur(16px);
-	      border: 1px solid var(--border);
-	      border-radius: 48px;
-	      padding: 1.5rem 1.8rem 2rem;
-	      margin-bottom: 2rem;
-	      box-shadow: var(--shadow);
-	      transition: all 0.2s;
-	    }
-	    .hero-header {
-	      display: flex;
-	      justify-content: space-between;
-	      align-items: center;
-	      flex-wrap: wrap;
-	      gap: 12px;
-	      margin-bottom: 1.2rem;
-	    }
-	    .hero-city {
-	      font-size: 1.6rem;
-	      font-weight: 600;
-	      letter-spacing: -0.3px;
-	      background: linear-gradient(120deg, #fff, var(--accent));
-	      background-clip: text;
-	      -webkit-background-clip: text;
-	      color: transparent;
-	    }
-	    .hero-select {
-	      background: var(--glass);
-	      border: 1px solid var(--border);
-	      border-radius: 40px;
-	      padding: 8px 16px;
-	      color: var(--text);
-	      font-weight: 500;
-	      font-size: 0.85rem;
-	      cursor: pointer;
-	      outline: none;
-	      transition: 0.2s;
-	    }
-	    .hero-select:hover {
-	      border-color: var(--accent);
-	    }
-	    .analog-canvas-wrapper {
-	      display: flex;
-	      justify-content: center;
-	      margin: 1rem 0 0.8rem;
-	    }
-	    canvas.analog-canvas {
-	      background: var(--dial-bg);
-	      border-radius: 50%;
-	      box-shadow: 0 15px 30px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.1);
-	      width: min(280px, 70vw);
-	      height: min(280px, 70vw);
-	      max-width: 280px;
-	      max-height: 280px;
-	      transition: background 0.2s;
-	    }
-	    .hero-date {
-	      text-align: center;
-	      font-size: 0.95rem;
-	      font-weight: 500;
-	      letter-spacing: 0.3px;
-	      color: var(--muted);
-	      margin-top: 12px;
-	    }
-	    .hero-tz {
-	      text-align: center;
-	      font-size: 0.7rem;
-	      background: var(--glass-light);
-	      display: inline-block;
-	      padding: 4px 12px;
-	      border-radius: 40px;
-	      margin-top: 8px;
-	    }
-	
-	    /* grid of analog cards */
-	    .analog-grid {
-	      display: grid;
-	      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-	      gap: 1.6rem;
-	      margin: 1rem 0 1.2rem;
-	    }
-	    .analog-card {
-	      background: var(--surface);
-	      backdrop-filter: blur(12px);
-	      border: 1px solid var(--border);
-	      border-radius: 36px;
-	      padding: 1.3rem 1rem 1.5rem;
-	      transition: transform 0.2s ease, border-color 0.2s;
-	      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-	    }
-	    .analog-card:hover {
-	      border-color: var(--accent);
-	      transform: translateY(-5px);
-	    }
-	    .card-header {
-	      display: flex;
-	      justify-content: space-between;
-	      align-items: baseline;
-	      margin-bottom: 1rem;
-	      flex-wrap: wrap;
-	      gap: 8px;
-	    }
-	    .card-city {
-	      font-weight: 600;
-	      font-size: 1.25rem;
-	      background: linear-gradient(145deg, var(--text), var(--muted));
-	      background-clip: text;
-	      -webkit-background-clip: text;
-	      color: transparent;
-	    }
-	    .card-select {
-	      background: var(--glass);
-	      border: 1px solid var(--border);
-	      border-radius: 30px;
-	      padding: 4px 12px;
-	      font-size: 0.7rem;
-	      color: var(--text);
-	      cursor: pointer;
-	    }
-	    .small-canvas {
-	      display: block;
-	      margin: 0 auto;
-	      background: var(--dial-bg);
-	      border-radius: 50%;
-	      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-	      width: min(180px, 45vw);
-	      height: min(180px, 45vw);
-	      max-width: 180px;
-	      max-height: 180px;
-	    }
-	    .card-date {
-	      font-size: 0.7rem;
-	      text-align: center;
-	      margin-top: 12px;
-	      color: var(--muted);
-	    }
-	    .card-tz {
-	      font-size: 0.65rem;
-	      text-align: center;
-	      background: var(--glass-light);
-	      border-radius: 30px;
-	      padding: 3px 8px;
-	      display: inline-block;
-	      width: auto;
-	      margin: 8px auto 0;
-	    }
-	    footer {
-	      text-align: center;
-	      margin-top: 3rem;
-	      padding-top: 1rem;
-	      border-top: 1px solid var(--border);
-	      color: var(--muted);
-	      font-size: 0.75rem;
-	    }
-	    footer span {
-	      color: var(--accent);
-	      font-weight: 500;
-	    }
-	    @media (max-width: 700px) {
-	      .hero-city { font-size: 1.2rem; }
-	      .analog-grid { gap: 1rem; }
-	    }
-	  </style>
-	</head>
-	<body>
-	<div class="clock-container">
-	  <header>
-	    <div class="title-section">
-	      <h1>⌛ Analog Atelier</h1>
-	      <p>precise mechanical elegance · world time reimagined</p>
-	    </div>
-	    <div class="controls">
-	      <div class="toggle-group">
-	        <span class="toggle-label" id="lbl-dark">🌙</span>
-	        <div class="toggle-switch" id="themeToggle"><div class="knob"></div></div>
-	        <span class="toggle-label" id="lbl-light">☀️</span>
-	      </div>
-	      <div class="toggle-group">
-	        <span class="toggle-label" id="lbl-12h">12h</span>
-	        <div class="toggle-switch" id="fmtToggle"><div class="knob"></div></div>
-	        <span class="toggle-label" id="lbl-24h">24h</span>
-	      </div>
-	    </div>
-	  </header>
-	
-	  <!-- HERO ANALOG CLOCK -->
-	  <div class="hero-analog">
-	    <div class="hero-header">
-	      <div class="hero-city" id="heroCityLabel">New York</div>
-	      <select id="heroZoneSelect" class="hero-select"></select>
-	    </div>
-	    <div class="analog-canvas-wrapper">
-	      <canvas id="heroCanvas" class="analog-canvas" width="500" height="500"></canvas>
-	    </div>
-	    <div class="hero-date" id="heroDate">Monday, 15 April 2026</div>
-	    <div style="text-align: center;"><span class="hero-tz" id="heroTzLabel">UTC-4</span></div>
-	  </div>
-	
-	  <!-- 6 ANALOG CARDS (two rows, dynamic) -->
-	  <div class="analog-grid" id="analogGrid"></div>
-	
-	  <footer>
-	    <p>crafted with precision by <span>__NAME__</span> · analog soul, global rhythm</p>
-	  </footer>
-	</div>
-	
-	<script>
-	  // --------------------- TIMEZONE DATABASE -------------------------
-	  const TIMEZONES = [
-	    { label: "New York", tz: "America/New_York" }, { label: "London", tz: "Europe/London" },
-	    { label: "Tokyo", tz: "Asia/Tokyo" }, { label: "Sydney", tz: "Australia/Sydney" },
-	    { label: "Dubai", tz: "Asia/Dubai" }, { label: "Paris", tz: "Europe/Paris" },
-	    { label: "Los Angeles", tz: "America/Los_Angeles" }, { label: "Singapore", tz: "Asia/Singapore" },
-	    { label: "Mumbai", tz: "Asia/Kolkata" }, { label: "Berlin", tz: "Europe/Berlin" },
-	    { label: "Toronto", tz: "America/Toronto" }, { label: "São Paulo", tz: "America/Sao_Paulo" },
-	    { label: "Mexico City", tz: "America/Mexico_City" }, { label: "Cairo", tz: "Africa/Cairo" },
-	    { label: "Johannesburg", tz: "Africa/Johannesburg" }, { label: "Istanbul", tz: "Europe/Istanbul" },
-	    { label: "Moscow", tz: "Europe/Moscow" }, { label: "Seoul", tz: "Asia/Seoul" },
-	    { label: "Auckland", tz: "Pacific/Auckland" }, { label: "Honolulu", tz: "Pacific/Honolulu" }
-	  ];
-	
-	  // default zones for 6 cards: first row: New York, London, Tokyo ; second row: Sydney, Dubai, Paris
-	  const DEFAULT_SMALL = ["America/New_York", "Europe/London", "Asia/Tokyo", "Australia/Sydney", "Asia/Dubai", "Europe/Paris"];
-	
-	  // ---------- persistent state ----------
-	  let use24h = localStorage.getItem("wt_fmt_analog") === "24";  // affects digital date format? we use for date display (optional but good)
-	  let heroZone = localStorage.getItem("analog_hero_zone") || "America/New_York";
-	  let smallZones = [];
-	  try {
-	    const saved = localStorage.getItem("analog_small_zones");
-	    if(saved && Array.isArray(JSON.parse(saved))) smallZones = JSON.parse(saved);
-	    if(!smallZones || smallZones.length !== 6) smallZones = [...DEFAULT_SMALL];
-	  } catch(e) { smallZones = [...DEFAULT_SMALL]; }
-	
-	  // ensure each zone exists in TIMEZONES list for selector display
-	  function ensureZoneInList(tz) {
-	    if(!TIMEZONES.some(z => z.tz === tz)) {
-	      let friendly = tz.split('/').pop().replace(/_/g, ' ');
-	      TIMEZONES.unshift({ label: friendly + " (custom)", tz: tz });
-	    }
-	  }
-	  smallZones.forEach(z => ensureZoneInList(z));
-	  ensureZoneInList(heroZone);
-	
-	  // Helper: get time components for given timezone
-	  function getTimeComponents(tz, now = new Date()) {
-	    const formatterOpts = { timeZone: tz, hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false };
-	    let parts = new Intl.DateTimeFormat('en', formatterOpts).formatToParts(now);
-	    let hour = 0, minute = 0, second = 0;
-	    for(let p of parts) {
-	      if(p.type === 'hour') hour = parseInt(p.value, 10);
-	      if(p.type === 'minute') minute = parseInt(p.value, 10);
-	      if(p.type === 'second') second = parseInt(p.value, 10);
-	    }
-	    // if 24h mode used for hour hand we still need 12h rotation? analog uses 0-11 for hour hand.
-	    let hour12 = hour % 12;
-	    return { hour: hour12, minute, second, rawHour24: hour };
-	  }
-	
-	  // draw analog clock on canvas context
-	  function drawAnalogClock(ctx, width, height, hour, minute, second, cityLabel, tzDisplay = "", addGlow = true) {
-	    const centerX = width/2, centerY = height/2;
-	    const radius = Math.min(width, height) * 0.42;
-	    ctx.clearRect(0, 0, width, height);
-	    
-	    // background glossy
-	    ctx.save();
-	    ctx.shadowBlur = 0;
-	    // dial ring
-	    ctx.beginPath();
-	    ctx.arc(centerX, centerY, radius + 8, 0, 2*Math.PI);
-	    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--dial-ring').trim() || "#2e3440";
-	    ctx.fill();
-	    ctx.beginPath();
-	    ctx.arc(centerX, centerY, radius + 4, 0, 2*Math.PI);
-	    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--dial-bg').trim() || "#11141f";
-	    ctx.fill();
-	    
-	    // minute marks
-	    ctx.beginPath();
-	    ctx.lineWidth = 1.5;
-	    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || "#8b98b9";
-	    for(let i=0; i<60; i++) {
-	      let angle = (i * 6 - 90) * Math.PI/180;
-	      let inner = radius - (i%5===0 ? 10 : 4);
-	      let outer = radius - 2;
-	      let x1 = centerX + inner * Math.cos(angle);
-	      let y1 = centerY + inner * Math.sin(angle);
-	      let x2 = centerX + outer * Math.cos(angle);
-	      let y2 = centerY + outer * Math.sin(angle);
-	      ctx.beginPath();
-	      ctx.moveTo(x1,y1);
-	      ctx.lineTo(x2,y2);
-	      ctx.stroke();
-	    }
-	    // hour numbers (12,3,6,9)
-	    ctx.font = `bold ${Math.floor(radius * 0.12)}px "Inter"`;
-	    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || "#fff";
-	    ctx.textAlign = "center";
-	    ctx.textBaseline = "middle";
-	    for(let i=1; i<=12; i++) {
-	      let angle = (i * 30 - 90) * Math.PI/180;
-	      let numRadius = radius - radius*0.25;
-	      let x = centerX + numRadius * Math.cos(angle);
-	      let y = centerY + numRadius * Math.sin(angle);
-	      ctx.fillText(i.toString(), x, y);
-	    }
-	    
-	    // draw hands with shadow/glow
-	    const drawHand = (angleRad, length, widthVal, color, shadow = true) => {
-	      ctx.beginPath();
-	      ctx.moveTo(centerX, centerY);
-	      let x = centerX + length * Math.cos(angleRad);
-	      let y = centerY + length * Math.sin(angleRad);
-	      ctx.lineTo(x, y);
-	      ctx.lineWidth = widthVal;
-	      ctx.strokeStyle = color;
-	      if(shadow && addGlow) {
-	        ctx.shadowBlur = 6;
-	        ctx.shadowColor = color + "aa";
-	      } else { ctx.shadowBlur = 0; }
-	      ctx.stroke();
-	      ctx.shadowBlur = 0;
-	    };
-	    
-	    const hourAngle = ((hour % 12) * 30 + minute * 0.5 - 90) * Math.PI/180;
-	    const minuteAngle = (minute * 6 - 90) * Math.PI/180;
-	    const secondAngle = (second * 6 - 90) * Math.PI/180;
-	    
-	    drawHand(hourAngle, radius * 0.5, 5, getComputedStyle(document.documentElement).getPropertyValue('--hand-hour').trim() || "#ffffff", true);
-	    drawHand(minuteAngle, radius * 0.7, 3.5, getComputedStyle(document.documentElement).getPropertyValue('--hand-minute').trim() || "#cbd5ff", true);
-	    drawHand(secondAngle, radius * 0.8, 2, getComputedStyle(document.documentElement).getPropertyValue('--hand-second').trim() || "#ff7b4a", true);
-	    
-	    // center cap
-	    ctx.beginPath();
-	    ctx.arc(centerX, centerY, 5, 0, 2*Math.PI);
-	    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || "#ff7b4a";
-	    ctx.fill();
-	    ctx.beginPath();
-	    ctx.arc(centerX, centerY, 2.5, 0, 2*Math.PI);
-	    ctx.fillStyle = "#fff";
-	    ctx.fill();
-	    ctx.restore();
-	  }
-	  
-	  // universal render for canvas and date strings
-	  function renderAnalogForZone(canvasId, zone, dateElementId, tzElementId = null, cityElementId = null, cityLabelOverride = null) {
-	    const canvas = document.getElementById(canvasId);
-	    if(!canvas) return;
-	    const now = new Date();
-	    const comp = getTimeComponents(zone, now);
-	    const hour = comp.hour;
-	    const minute = comp.minute;
-	    const second = comp.second;
-	    const ctx = canvas.getContext('2d');
-	    const size = canvas.clientWidth;
-	    canvas.width = size; canvas.height = size;
-	    drawAnalogClock(ctx, size, size, hour, minute, second, "", "", true);
-	    
-	    // date formatting
-	    let dateStr = now.toLocaleDateString("en-US", { timeZone: zone, weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-	    if(dateElementId) {
-	      const dateSpan = document.getElementById(dateElementId);
-	      if(dateSpan) dateSpan.innerText = dateStr;
-	    }
-	    if(tzElementId) {
-	      const tzSpan = document.getElementById(tzElementId);
-	      if(tzSpan) {
-	        let offset = new Intl.DateTimeFormat('en', { timeZone: zone, timeZoneName: 'short' }).formatToParts(now);
-	        let tzName = offset.find(p => p.type === 'timeZoneName')?.value || zone.split('/').pop();
-	        tzSpan.innerText = tzName;
-	      }
-	    }
-	    if(cityElementId && cityLabelOverride) {
-	      document.getElementById(cityElementId).innerText = cityLabelOverride;
-	    } else if(cityElementId) {
-	      let match = TIMEZONES.find(z => z.tz === zone);
-	      document.getElementById(cityElementId).innerText = match ? match.label : zone.split('/').pop();
-	    }
-	  }
-	  
-	  // populate select dropdown
-	  function populateSelect(selectEl, currentZone, onChangeCallback) {
-	    selectEl.innerHTML = '';
-	    TIMEZONES.forEach(tz => {
-	      const opt = document.createElement('option');
-	      opt.value = tz.tz;
-	      opt.textContent = tz.label;
-	      if(tz.tz === currentZone) opt.selected = true;
-	      selectEl.appendChild(opt);
-	    });
-	    selectEl.addEventListener('change', (e) => {
-	      onChangeCallback(e.target.value);
-	    });
-	  }
-	  
-	  // refresh all clocks (hero + 6 cards)
-	  function refreshAllClocks() {
-	    renderAnalogForZone('heroCanvas', heroZone, 'heroDate', 'heroTzLabel', 'heroCityLabel', TIMEZONES.find(z => z.tz === heroZone)?.label || heroZone.split('/').pop());
-	    for(let i=0; i<smallZones.length; i++) {
-	      const zone = smallZones[i];
-	      renderAnalogForZone(`smallCanvas_${i}`, zone, `smallDate_${i}`, `smallTz_${i}`, `smallCity_${i}`, TIMEZONES.find(z => z.tz === zone)?.label || zone.split('/').pop());
-	    }
-	  }
-	  
-	  // build dynamic grid of 6 analog cards
-	  function buildAnalogGrid() {
-	    const grid = document.getElementById('analogGrid');
-	    grid.innerHTML = '';
-	    for(let i=0; i<6; i++) {
-	      const card = document.createElement('div');
-	      card.className = 'analog-card';
-	      card.setAttribute('data-index', i);
-	      const cityName = TIMEZONES.find(z => z.tz === smallZones[i])?.label || smallZones[i].split('/').pop();
-	      card.innerHTML = `
-	        <div class="card-header">
-	          <div class="card-city" id="smallCity_${i}">${cityName}</div>
-	          <select class="card-select" id="smallSelect_${i}"></select>
-	        </div>
-	        <canvas id="smallCanvas_${i}" class="small-canvas" width="300" height="300"></canvas>
-	        <div class="card-date" id="smallDate_${i}">--</div>
-	        <div style="text-align:center;"><span class="card-tz" id="smallTz_${i}"></span></div>
-	      `;
-	      grid.appendChild(card);
-	    }
-	    // attach selectors and initial render
-	    for(let i=0; i<6; i++) {
-	      const selectEl = document.getElementById(`smallSelect_${i}`);
-	      const currentZone = smallZones[i];
-	      populateSelect(selectEl, currentZone, (newTz) => {
-	        smallZones[i] = newTz;
-	        ensureZoneInList(newTz);
-	        localStorage.setItem("analog_small_zones", JSON.stringify(smallZones));
-	        // re-render this card and also refresh all because select changes might affect other? but this specific card:
-	        renderAnalogForZone(`smallCanvas_${i}`, newTz, `smallDate_${i}`, `smallTz_${i}`, `smallCity_${i}`, TIMEZONES.find(z => z.tz === newTz)?.label || newTz.split('/').pop());
-	        refreshAllClocks(); // sync hero just in case date consistency
-	      });
-	      renderAnalogForZone(`smallCanvas_${i}`, currentZone, `smallDate_${i}`, `smallTz_${i}`, `smallCity_${i}`, TIMEZONES.find(z => z.tz === currentZone)?.label || currentZone.split('/').pop());
-	    }
-	  }
-	  
-	  // Theme handling
-	  function initTheme() {
-	    const savedTheme = localStorage.getItem("analog_theme") || "dark";
-	    if(savedTheme === "light") document.documentElement.setAttribute("data-theme", "light");
-	    else document.documentElement.removeAttribute("data-theme");
-	    const themeToggle = document.getElementById("themeToggle");
-	    if(savedTheme === "light") themeToggle.classList.add("active");
-	    themeToggle.addEventListener("click", () => {
-	      const isLight = document.documentElement.getAttribute("data-theme") === "light";
-	      if(isLight) {
-	        document.documentElement.removeAttribute("data-theme");
-	        themeToggle.classList.remove("active");
-	        localStorage.setItem("analog_theme", "dark");
-	      } else {
-	        document.documentElement.setAttribute("data-theme", "light");
-	        themeToggle.classList.add("active");
-	        localStorage.setItem("analog_theme", "light");
-	      }
-	      refreshAllClocks(); // redraw canvases with new colors
-	    });
-	  }
-	  
-	  // format toggle (12/24h only affects date display style? also for completeness, but not needed for analog hands)
-	  function initFormatToggle() {
-	    const fmtToggle = document.getElementById("fmtToggle");
-	    const lbl12 = document.getElementById("lbl-12h");
-	    const lbl24 = document.getElementById("lbl-24h");
-	    function updateFmtUI() {
-	      if(use24h) {
-	        fmtToggle.classList.add("active");
-	        lbl12.classList.remove("active");
-	        lbl24.classList.add("active");
-	      } else {
-	        fmtToggle.classList.remove("active");
-	        lbl12.classList.add("active");
-	        lbl24.classList.remove("active");
-	      }
-	      refreshAllClocks(); // dates may reflect 24h style? we keep date format independent, but for consistency.
-	    }
-	    updateFmtUI();
-	    fmtToggle.addEventListener("click", () => {
-	      use24h = !use24h;
-	      localStorage.setItem("wt_fmt_analog", use24h ? "24" : "12");
-	      updateFmtUI();
-	      refreshAllClocks();
-	    });
-	  }
-	  
-	  // Hero select and initialization
-	  function initHero() {
-	    const heroSelect = document.getElementById("heroZoneSelect");
-	    populateSelect(heroSelect, heroZone, (newZone) => {
-	      heroZone = newZone;
-	      localStorage.setItem("analog_hero_zone", newZone);
-	      ensureZoneInList(newZone);
-	      refreshAllClocks();
-	      // rebuild select options to keep consistency
-	      populateSelect(heroSelect, heroZone, (val) => {
-	        heroZone = val;
-	        localStorage.setItem("analog_hero_zone", val);
-	        refreshAllClocks();
-	      });
-	    });
-	    refreshAllClocks();
-	  }
-	  
-	  // auto-detect fallback heroZone from IP (optional + friendly)
-	  function detectInitialHero() {
-	    if(!localStorage.getItem("analog_hero_zone")) {
-	      fetch("https://ipapi.co/json/").then(r => r.json()).then(d => {
-	        if(d.timezone) {
-	          heroZone = d.timezone;
-	          ensureZoneInList(heroZone);
-	          localStorage.setItem("analog_hero_zone", heroZone);
-	          initHero();
-	          refreshAllClocks();
-	        }
-	      }).catch(() => {});
-	    } else {
-	      initHero();
-	    }
-	  }
-	  
-	  // start everything
-	  function main() {
-	    initTheme();
-	    initFormatToggle();
-	    buildAnalogGrid();      // creates 6 cards with canvases
-	    detectInitialHero();    // sets heroZone and calls initHero after potential fetch
-	    // ensure hero still renders after grid
-	    setTimeout(() => {
-	      if(document.getElementById("heroCanvas")) initHero();
-	      refreshAllClocks();
-	    }, 50);
-	    setInterval(() => refreshAllClocks(), 1000);
-	  }
-	  
-	  main();
-	</script>
-	</body>
-	</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>__NAME__'s Live World Clock</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d2e;
+      --surface2: #23273a;
+      --border: #2d3148;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --accent: #ff4f4f;
+      --sub: #94a3b8;
+    }
+    [data-theme="light"] {
+      --bg: #f0f2f8;
+      --surface: #ffffff;
+      --surface2: #e8eaf4;
+      --border: #d1d5e8;
+      --text: #1e2340;
+      --muted: #6b7280;
+      --accent: #ff4f4f;
+      --sub: #4b5563;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 3rem;
+      transition: background 0.2s, color 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.75rem 2rem 1.5rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    header h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      line-height: 1.1;
+    }
+    .header-sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+    /* theme toggle */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .toggle-track {
+      width: 40px; height: 22px;
+      background: var(--border);
+      border-radius: 999px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-track.on { background: var(--accent); }
+    .toggle-thumb {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.2s;
+    }
+    .toggle-track.on .toggle-thumb { transform: translateX(18px); }
+    /* ── Main ── */
+    main { flex: 1; padding: 1.75rem 1rem 0; }
+    /* ── Hero card ── */
+    .hero {
+      max-width: 1100px;
+      margin: 0 auto 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem 2rem 2rem;
+      position: relative;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .hero select {
+      position: absolute;
+      top: 1.25rem; right: 1.25rem;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      outline: none;
+      max-width: 210px;
+      transition: background 0.2s;
+    }
+    .hero select:hover { border-color: var(--accent); }
+    .hero .label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+    .hero .big-time {
+      font-size: clamp(3.5rem, 10vw, 6.5rem);
+      font-weight: 550;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      line-height: 1;
+    }
+    .hero .big-date { font-size: 1rem; color: var(--sub); margin-top: 0.7rem; }
+    .hero .tz-info  { font-size: 0.78rem; color: var(--muted); margin-top: 0.25rem; }
+    /* ── Small cards ── */
+    .small-grid {
+      max-width: 1100px;
+      margin: 0 auto 1rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 600px) { .small-grid { grid-template-columns: 1fr; } }
+    .small-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem 1.25rem 1.1rem;
+      position: relative;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .small-card:hover { border-color: var(--accent); }
+    .small-card select {
+      position: absolute;
+      top: 0.9rem; right: 0.9rem;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      outline: none;
+      max-width: 130px;
+      transition: background 0.2s;
+    }
+    .small-card select:hover { border-color: var(--accent); }
+    .small-card .label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+    .small-card .s-time {
+      font-size: 2.2rem;
+      font-weight: 550;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      line-height: 1;
+    }
+    .small-card .s-date { font-size: 0.78rem; color: var(--sub); margin-top: 0.35rem; }
+    .small-card .s-tz   { font-size: 0.7rem;  color: var(--muted); margin-top: 0.2rem; }
+    /* ── 12h/24h toggle ── */
+    .fmt-toggle-wrap {
+      max-width: 1100px;
+      margin: 0.5rem auto 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .fmt-toggle-track {
+      width: 44px; height: 24px;
+      background: var(--border);
+      border-radius: 999px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .fmt-toggle-track.on { background: var(--accent); }
+    .fmt-toggle-thumb {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.2s;
+    }
+    .fmt-toggle-track.on .fmt-toggle-thumb { transform: translateX(20px); }
+    .fmt-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .fmt-label.active { color: var(--accent); }
+    /* ── Footer ── */
+    footer {
+      max-width: 1100px;
+      margin: 2.5rem auto 0;
+      padding: 1.25rem 1rem 0;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    footer p { font-size: 0.78rem; color: var(--muted); }
+    footer p span { color: var(--accent); font-weight: 500; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>__NAME__'s Live World Clock</h1>
+        <p class="header-sub">Perfect timing, wherever you work.</p>
+      </div>
+      <div class="toggle-wrap">
+        <span>light</span>
+        <div class="toggle-track" id="theme-toggle"><div class="toggle-thumb"></div></div>
+        <span>dark</span>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="hero">
+      <select id="hero-select"></select>
+      <div class="label"    id="hero-city">Detecting location...</div>
+      <div class="big-time" id="hero-time">--:--:--</div>
+      <div class="big-date" id="hero-date"></div>
+      <div class="tz-info"  id="hero-tz"></div>
+    </div>
+    <!-- Row 1 -->
+    <div class="small-grid">
+      <div class="small-card">
+        <select id="sel-0"></select>
+        <div class="label"  id="city-0"></div>
+        <div class="s-time" id="time-0">--:--:--</div>
+        <div class="s-date" id="date-0"></div>
+        <div class="s-tz"   id="tz-0"></div>
+      </div>
+      <div class="small-card">
+        <select id="sel-1"></select>
+        <div class="label"  id="city-1"></div>
+        <div class="s-time" id="time-1">--:--:--</div>
+        <div class="s-date" id="date-1"></div>
+        <div class="s-tz"   id="tz-1"></div>
+      </div>
+      <div class="small-card">
+        <select id="sel-2"></select>
+        <div class="label"  id="city-2"></div>
+        <div class="s-time" id="time-2">--:--:--</div>
+        <div class="s-date" id="date-2"></div>
+        <div class="s-tz"   id="tz-2"></div>
+      </div>
+    </div>
+    <!-- Row 2 -->
+    <div class="small-grid">
+      <div class="small-card">
+        <select id="sel-3"></select>
+        <div class="label"  id="city-3"></div>
+        <div class="s-time" id="time-3">--:--:--</div>
+        <div class="s-date" id="date-3"></div>
+        <div class="s-tz"   id="tz-3"></div>
+      </div>
+      <div class="small-card">
+        <select id="sel-4"></select>
+        <div class="label"  id="city-4"></div>
+        <div class="s-time" id="time-4">--:--:--</div>
+        <div class="s-date" id="date-4"></div>
+        <div class="s-tz"   id="tz-4"></div>
+      </div>
+      <div class="small-card">
+        <select id="sel-5"></select>
+        <div class="label"  id="city-5"></div>
+        <div class="s-time" id="time-5">--:--:--</div>
+        <div class="s-date" id="date-5"></div>
+        <div class="s-tz"   id="tz-5"></div>
+      </div>
+    </div>
+    <!-- 12h / 24h toggle -->
+    <div class="fmt-toggle-wrap">
+      <span class="fmt-label active" id="lbl-12h">12h</span>
+      <div class="fmt-toggle-track" id="fmt-toggle"><div class="fmt-toggle-thumb"></div></div>
+      <span class="fmt-label" id="lbl-24h">24h</span>
+    </div>
+  </main>
+  <footer>
+    <p>Built by <span>__NAME__</span></p>
+  </footer>
+  <script>
+    const ZONES = [
+      { label: "Calgary",       tz: "America/Edmonton"    },
+      { label: "New York",      tz: "America/New_York"    },
+      { label: "Los Angeles",   tz: "America/Los_Angeles" },
+      { label: "Chicago",       tz: "America/Chicago"     },
+      { label: "Toronto",       tz: "America/Toronto"     },
+      { label: "Vancouver",     tz: "America/Vancouver"   },
+      { label: "São Paulo",     tz: "America/Sao_Paulo"   },
+      { label: "Mexico City",   tz: "America/Mexico_City" },
+      { label: "London",        tz: "Europe/London"       },
+      { label: "Paris",         tz: "Europe/Paris"        },
+      { label: "Berlin",        tz: "Europe/Berlin"       },
+      { label: "Amsterdam",     tz: "Europe/Amsterdam"    },
+      { label: "Madrid",        tz: "Europe/Madrid"       },
+      { label: "Rome",          tz: "Europe/Rome"         },
+      { label: "Moscow",        tz: "Europe/Moscow"       },
+      { label: "Dubai",         tz: "Asia/Dubai"          },
+      { label: "Mumbai",        tz: "Asia/Kolkata"        },
+      { label: "Karachi",       tz: "Asia/Karachi"        },
+      { label: "Bangkok",       tz: "Asia/Bangkok"        },
+      { label: "Singapore",     tz: "Asia/Singapore"      },
+      { label: "Hong Kong",     tz: "Asia/Hong_Kong"      },
+      { label: "Shanghai",      tz: "Asia/Shanghai"       },
+      { label: "Tokyo",         tz: "Asia/Tokyo"          },
+      { label: "Seoul",         tz: "Asia/Seoul"          },
+      { label: "Sydney",        tz: "Australia/Sydney"    },
+      { label: "Melbourne",     tz: "Australia/Melbourne" },
+      { label: "Auckland",      tz: "Pacific/Auckland"    },
+      { label: "Honolulu",      tz: "Pacific/Honolulu"    },
+      { label: "Johannesburg",  tz: "Africa/Johannesburg" },
+      { label: "Cairo",         tz: "Africa/Cairo"        },
+      { label: "Lagos",         tz: "Africa/Lagos"        },
+    ];
+    const DEFAULTS_ROW1 = ["America/New_York", "Australia/Sydney", "Europe/London"];
+    const DEFAULTS_ROW2 = ["Africa/Lagos", "Africa/Johannesburg", "America/Vancouver"];
+    const LS_THEME  = "wt_theme";
+    const LS_HERO   = "wt_hero";
+    const LS_SMALL  = "wt_small";
+    const LS_SMALL2 = "wt_small2";
+    const LS_FMT    = "wt_fmt";
+    // Default to 12h
+    let use24h = localStorage.getItem(LS_FMT) === "24";
+    function getOffsetLabel(tz) {
+      const parts = new Intl.DateTimeFormat("en", {
+        timeZone: tz, timeZoneName: "short"
+      }).formatToParts(new Date());
+      return (parts.find(p => p.type === "timeZoneName") || {}).value || tz;
+    }
+    function labelForTz(tz) {
+      const match = ZONES.find(z => z.tz === tz);
+      if (match) return match.label;
+      return tz.split("/").pop().replace(/_/g, " ");
+    }
+    function ensureZoneInList(tz) {
+      if (!ZONES.find(z => z.tz === tz)) {
+        const label = tz.split("/").pop().replace(/_/g, " ");
+        ZONES.unshift({ label: label + " (local)", tz });
+      }
+    }
+    function buildSelect(el, currentTz, onChange) {
+      el.innerHTML = "";
+      ZONES.forEach(z => {
+        const opt = document.createElement("option");
+        opt.value = z.tz;
+        opt.textContent = z.label;
+        if (z.tz === currentTz) opt.selected = true;
+        el.appendChild(opt);
+      });
+      el.addEventListener("change", () => onChange(el.value));
+    }
+    function renderClock(timeEl, dateEl, tzEl, cityEl, tz) {
+      const now = new Date();
+      if (use24h) {
+        timeEl.textContent = now.toLocaleTimeString("en-GB", {
+          timeZone: tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+        });
+      } else {
+        timeEl.textContent = now.toLocaleTimeString("en-US", {
+          timeZone: tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true
+        });
+      }
+      dateEl.textContent = now.toLocaleDateString("en-GB", {
+        timeZone: tz, weekday: "long", month: "long", day: "numeric", year: "numeric"
+      });
+      if (tzEl)   tzEl.textContent   = getOffsetLabel(tz);
+      if (cityEl) cityEl.textContent = labelForTz(tz);
+    }
+    function refreshAll() {
+      if (heroTz) renderClock(heroTime, heroDate, heroTzEl, heroCityEl, heroTz);
+      for (let i = 0; i < 6; i++) {
+        renderClock(
+          document.getElementById("time-" + i),
+          document.getElementById("date-" + i),
+          document.getElementById("tz-"   + i),
+          document.getElementById("city-" + i),
+          smallState[i]
+        );
+      }
+    }
+    // ── Theme toggle ──
+    const savedTheme = localStorage.getItem(LS_THEME) || "dark";
+    if (savedTheme === "light") document.documentElement.setAttribute("data-theme", "light");
+    const themeToggle = document.getElementById("theme-toggle");
+    if (savedTheme === "light") themeToggle.classList.add("on");
+    themeToggle.addEventListener("click", () => {
+      const isLight = document.documentElement.getAttribute("data-theme") === "light";
+      if (isLight) {
+        document.documentElement.removeAttribute("data-theme");
+        themeToggle.classList.remove("on");
+        localStorage.setItem(LS_THEME, "dark");
+      } else {
+        document.documentElement.setAttribute("data-theme", "light");
+        themeToggle.classList.add("on");
+        localStorage.setItem(LS_THEME, "light");
+      }
+    });
+    // ── 12h/24h toggle ──
+    const fmtToggle = document.getElementById("fmt-toggle");
+    const lbl12 = document.getElementById("lbl-12h");
+    const lbl24 = document.getElementById("lbl-24h");
+    function updateFmtLabels() {
+      if (use24h) {
+        fmtToggle.classList.add("on");
+        lbl12.classList.remove("active");
+        lbl24.classList.add("active");
+      } else {
+        fmtToggle.classList.remove("on");
+        lbl12.classList.add("active");
+        lbl24.classList.remove("active");
+      }
+    }
+    updateFmtLabels();
+    fmtToggle.addEventListener("click", () => {
+      use24h = !use24h;
+      localStorage.setItem(LS_FMT, use24h ? "24" : "12");
+      updateFmtLabels();
+      refreshAll();
+    });
+    // ── Hero ──
+    let heroTz       = localStorage.getItem(LS_HERO);
+    const heroSel    = document.getElementById("hero-select");
+    const heroTime   = document.getElementById("hero-time");
+    const heroDate   = document.getElementById("hero-date");
+    const heroTzEl   = document.getElementById("hero-tz");
+    const heroCityEl = document.getElementById("hero-city");
+    function setHero(tz) {
+      heroTz = tz;
+      localStorage.setItem(LS_HERO, tz);
+      ensureZoneInList(tz);
+      buildSelect(heroSel, tz, setHero);
+      renderClock(heroTime, heroDate, heroTzEl, heroCityEl, tz);
+    }
+    if (heroTz) {
+      setHero(heroTz);
+    } else {
+      heroCityEl.textContent = "Detecting location...";
+      fetch("https://ipapi.co/json/")
+        .then(r => r.json())
+        .then(d => setHero(d.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone))
+        .catch(()  => setHero(Intl.DateTimeFormat().resolvedOptions().timeZone));
+    }
+    // ── Small cards ──
+    const savedSmall1 = JSON.parse(localStorage.getItem(LS_SMALL)  || "null") || DEFAULTS_ROW1;
+    const savedSmall2 = JSON.parse(localStorage.getItem(LS_SMALL2) || "null") || DEFAULTS_ROW2;
+    const smallState  = [...savedSmall1, ...savedSmall2];
+    for (let i = 0; i < 6; i++) {
+      const lsKey  = i < 3 ? LS_SMALL : LS_SMALL2;
+      const sel    = document.getElementById("sel-"  + i);
+      const timeEl = document.getElementById("time-" + i);
+      const dateEl = document.getElementById("date-" + i);
+      const tzEl   = document.getElementById("tz-"   + i);
+      const cityEl = document.getElementById("city-" + i);
+      ensureZoneInList(smallState[i]);
+      buildSelect(sel, smallState[i], newTz => {
+        smallState[i] = newTz;
+        const rowState = i < 3 ? smallState.slice(0, 3) : smallState.slice(3, 6);
+        localStorage.setItem(lsKey, JSON.stringify(rowState));
+        renderClock(timeEl, dateEl, tzEl, cityEl, newTz);
+      });
+      renderClock(timeEl, dateEl, tzEl, cityEl, smallState[i]);
+    }
+    setInterval(refreshAll, 1000);
+  </script>
+</body>
+</html>
